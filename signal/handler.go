@@ -26,10 +26,7 @@ func NewHandler() Handler {
 	go func() {
 		for {
 			incomingSignal := <-handler.channel
-			functions := handler.hooks[incomingSignal]
-			for _, function := range functions {
-				function(incomingSignal)
-			}
+			handler.handle(incomingSignal)
 		}
 	}()
 	return handler
@@ -38,6 +35,13 @@ func NewHandler() Handler {
 func ShutdownHandler(function func(os.Signal)) Handler {
 	handler := NewHandler()
 	return handler.OnShutdown(function)
+}
+
+func (self Handler) handle(incomingSignal os.Signal) {
+	functions := self.hooks[incomingSignal]
+	for _, function := range functions {
+		function(incomingSignal)
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,7 +71,7 @@ func (self Handler) OnHangup(function func(os.Signal)) Handler { return self.Add
 func (self Handler) OnKill(function func(os.Signal)) Handler   { return self.Add(function, Kill) }
 
 ///////////////////////////////////////////////////////////////////////////////
-// TODO: Would be nice to eventually build in functionality to truly ignore
+// TODO: Would be nice to eventually build in functionality to turly ignore
 // signals even force kill signals; possibly via uninterruptable sleep or some
 // similar technique to make this a truly general use signal handling library
 func (self Handler) Ignore(signals ...os.Signal) Handler {
