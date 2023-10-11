@@ -37,11 +37,25 @@ type Process struct {
 	TempDirectory      string
 	UserCacheDirectory string
 	Env                map[string]string
+	EnvVars            []string
 	Executable         string
 	WorkingDirectory   string
 	StartedAt          time.Time
 	Signals            signal.Handler
 	shutdown           []func()
+	Credential         *syscall.Credential
+	LogDirectory       string
+	LogFile            string
+	Initialized        bool
+	Chroot             string
+	Args               []string
+	Umask              int
+	abspath            string
+	logFile            *os.File
+	nullFile           *os.File
+	rpipe, wpipe       *os.File
+	EnvVar
+	//EnvVars          map[string]string
 }
 
 // TODO
@@ -90,7 +104,7 @@ func (p *Process) WritePid(path string) *pid.File {
 func (p *Process) CleanPid() error { return p.PidFile.Clean() }
 
 // NOTE: Set process name, as in the name seen in `ps`
-func (self *Process) SetName(name string) {
+func (p *Process) SetName(name string) {
 	argv0str := (*reflect.StringHeader)(unsafe.Pointer(&os.Args[0]))
 	argv0 := (*[1 << 30]byte)(unsafe.Pointer(argv0str.Data))[:argv0str.Len]
 	n := copy(argv0, name)
