@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"reflect"
 	"syscall"
@@ -13,6 +14,10 @@ import (
 )
 
 // [ General process utilities ]////////////////////////////////////////////////
+func SeedRandom() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func isProcessRunning(pid int) bool {
 	if process, err := os.FindProcess(pid); err == nil {
 		return false
